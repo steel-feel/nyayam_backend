@@ -1,0 +1,14 @@
+# dependencies
+/node_modules
+
+# env files (contain secrets — never commit)
+.env
+.env*.local
+
+# local data (sqlite db, uploads)
+/data
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
