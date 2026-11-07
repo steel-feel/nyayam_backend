@@ -1,12 +1,52 @@
-import { Database } from "bun:sqlite";
+import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "fs";
 import path from "path";
 import { CASE_SEEDS, DETAIL_SEEDS, PRESIDING_JUDGE } from "./cases-seed";
 
-const DATA_DIR = path.join(import.meta.dir, "..", "data");
+const DATA_DIR = path.join(import.meta.dirname, "..", "data");
 mkdirSync(path.join(DATA_DIR, "uploads"), { recursive: true });
 
-export const db = new Database(path.join(DATA_DIR, "nyayam.db"), { create: true });
+// Thin wrapper over node:sqlite's DatabaseSync exposing the small surface
+// this project uses (run / query / prepare / transaction).
+class Database {
+  private inner: DatabaseSync;
+
+  constructor(filename: string) {
+    this.inner = new DatabaseSync(filename);
+  }
+
+  run(sql: string) {
+    this.inner.exec(sql);
+  }
+
+  query(sql: string) {
+    const stmt = this.inner.prepare(sql);
+    return {
+      all: (...params: unknown[]) => stmt.all(...(params as any[])),
+      get: (...params: unknown[]) => stmt.get(...(params as any[])),
+    };
+  }
+
+  prepare(sql: string) {
+    return this.inner.prepare(sql);
+  }
+
+  transaction<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+    return (...args: A) => {
+      this.inner.exec("BEGIN");
+      try {
+        const result = fn(...args);
+        this.inner.exec("COMMIT");
+        return result;
+      } catch (err) {
+        this.inner.exec("ROLLBACK");
+        throw err;
+      }
+    };
+  }
+}
+
+export const db = new Database(path.join(DATA_DIR, "nyayam.db"));
 
 db.run(`
   CREATE TABLE IF NOT EXISTS timeline_events (

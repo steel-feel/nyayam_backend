@@ -1,6 +1,8 @@
+import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createHash, randomUUID } from "crypto";
+import { readFile, writeFile } from "fs/promises";
 import path from "path";
 import { db, seedTimeline, seedCases, type EvidenceRow } from "./db";
 import { PRESIDING_JUDGE } from "./cases-seed";
@@ -9,7 +11,7 @@ import { analyseEvidenceImage } from "./analysis";
 seedTimeline();
 seedCases();
 
-const UPLOADS_DIR = path.join(import.meta.dir, "..", "data", "uploads");
+const UPLOADS_DIR = path.join(import.meta.dirname, "..", "data", "uploads");
 const ASSEMBLYAI_TOKEN_URL = "https://token.assemblyai.com/v1/token";
 const OG_WHISPER_URL =
   "https://compute-network-16.integratenetwork.work/v1/proxy/audio/transcriptions";
@@ -290,7 +292,7 @@ app.post("/api/cases/:slug/evidence", async (c) => {
   const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
   const id = randomUUID();
   const filename = `${id}.${ext || "png"}`;
-  await Bun.write(path.join(UPLOADS_DIR, filename), buf);
+  await writeFile(path.join(UPLOADS_DIR, filename), buf);
 
   const base: EvidenceRow = {
     id,
@@ -340,19 +342,24 @@ app.post("/api/cases/:slug/evidence", async (c) => {
 });
 
 // Serves stored exhibit images.
-app.get("/uploads/:name", (c) => {
+app.get("/uploads/:name", async (c) => {
   const name = c.req.param("name");
   if (!/^[a-zA-Z0-9-]+\.[a-z0-9]+$/.test(name)) {
     return c.json({ error: "Bad filename" }, 400);
   }
   const ext = name.split(".").pop()!.toLowerCase();
-  const file = Bun.file(path.join(UPLOADS_DIR, name));
-  return new Response(file, {
+  let data: Buffer;
+  try {
+    data = await readFile(path.join(UPLOADS_DIR, name));
+  } catch {
+    return c.json({ error: "Not found" }, 404);
+  }
+  return new Response(new Uint8Array(data), {
     headers: { "Content-Type": MIME_BY_EXT[ext] ?? "application/octet-stream" },
   });
 });
 
 const port = 4000;
-console.log(`⚖️  nyayam-backend listening on http://localhost:${port}`);
-
-export default { port, fetch: app.fetch };
+serve({ fetch: app.fetch, port }, (info) => {
+  console.log(`⚖️  nyayam-backend listening on http://localhost:${info.port}`);
+});

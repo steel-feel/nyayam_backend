@@ -1,6 +1,6 @@
 # Nyayam.si Backend — Confidential AI for Indian Courts
 
-Hono (Bun) API server powering **Nyayam.si**: confidential courtroom
+Hono (Node.js) API server powering **Nyayam.si**: confidential courtroom
 transcription and verifiable evidence handling for the Indian judiciary,
 running inside **hardware-sealed TEE enclaves on 0G Private Computer**
 (0G Mainnet).
@@ -105,7 +105,7 @@ dstack):
 
 ## Setup
 
-Requires [Bun](https://bun.sh) (and pnpm for install).
+Requires Node.js ≥ 22.5 (for the built-in `node:sqlite` module) and pnpm.
 
 ```bash
 cp .env.example .env   # or create .env:
@@ -117,7 +117,7 @@ pnpm install
 pnpm dev    # → http://localhost:4000
 ```
 
-SQLite (`bun:sqlite`) is created at `data/nyayam.db` on first run and seeded
+SQLite (`node:sqlite`) is created at `data/nyayam.db` on first run and seeded
 with the cause list, transcripts, and timelines. `data/` and `.env` are
 git-ignored.
 
