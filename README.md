@@ -1,6 +1,6 @@
 # Nyayam.si Backend — Confidential AI for Indian Courts
 
-Elysia (Bun) API server powering **NyayaTEE**: confidential courtroom
+Hono (Bun) API server powering **NyayaTEE**: confidential courtroom
 transcription and verifiable evidence handling for the Indian judiciary,
 running inside **hardware-sealed TEE enclaves on 0G Private Computer**
 (0G Mainnet).
