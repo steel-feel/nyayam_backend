@@ -1,6 +1,6 @@
 # Nyayam.si Backend — Confidential AI for Indian Courts
 
-Hono (Bun) API server powering **NyayaTEE**: confidential courtroom
+Hono (Bun) API server powering **Nyayam.si**: confidential courtroom
 transcription and verifiable evidence handling for the Indian judiciary,
 running inside **hardware-sealed TEE enclaves on 0G Private Computer**
 (0G Mainnet).
@@ -47,7 +47,7 @@ worse than no AI at all.
 
 ## The 0G Difference: Verifiable, Hardware-Sealed Privacy
 
-NyayaTEE runs every AI workload on **0G Private Computer** — decentralized
+Nyayam.si runs every AI workload on **0G Private Computer** — decentralized
 inference inside **Intel TDX Trusted Execution Environments** (attested via
 dstack):
 
